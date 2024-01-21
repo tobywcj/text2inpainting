@@ -1,4 +1,4 @@
-# ClipSeg Diffusion Image Synthesis
+# ClipSeg Diffusion Image Synthesis Streamlit App
 
 This application uses the ClipSeg and Stable Diffusion models to identify and transform elements in images.
 

@@ -29,8 +29,8 @@ matplotlib
 # UI design and web deployment
 streamlit
 
-# # Install Clip from OpenAI ## MIT Licence
-# git+https://github.com/openai/CLIP.git
+# Install Clip from OpenAI ## MIT Licence
+git+https://github.com/openai/CLIP.git
 
 
 
