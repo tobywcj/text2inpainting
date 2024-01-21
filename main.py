@@ -7,7 +7,7 @@ from torchvision.transforms.functional import to_pil_image
 import numpy as np
 
 # Import Clip, ClipSeg, and Stable Diffusion models
-# import CLIP
+import CLIP
 from clipseg.models.clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
