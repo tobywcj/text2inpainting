@@ -32,8 +32,8 @@ streamlit
 # Install Clip from OpenAI ## MIT Licence
 git+https://github.com/openai/CLIP.git
 
-# # Install clipseg from Timo ## MIT Licence
-# git+https://github.com/timojl/clipseg.git#egg=clipseg
+# Install clipseg from Timo ## MIT Licence
+git+https://github.com/username/clipseg.git
 
 
 

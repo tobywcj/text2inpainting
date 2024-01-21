@@ -9,7 +9,6 @@ import os
 
 # Import Clip, ClipSeg, and Stable Diffusion models
 import clip
-# import clipseg.models.clipseg.CLIPDensePredT
 from clipseg.models.clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
