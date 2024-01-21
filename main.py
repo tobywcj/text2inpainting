@@ -9,7 +9,8 @@ import os
 
 # Import Clip, ClipSeg, and Stable Diffusion models
 import clip
-from clipseg.models.clipseg import CLIPDensePredT
+from transformers import AutoProcessor, CLIPSegForImageSegmentation
+# from clipseg.models.souclipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
 use_gpu = False
@@ -19,35 +20,41 @@ use_gpu = False
 @st.cache_resource
 def load_models():
     # load clipseg model
-    clip_model = CLIPDensePredT(version='ViT-B/16', reduce_dim=64)
+    # clip_model = CLIPDensePredT(version='ViT-B/16', reduce_dim=64)
+    # clip_model.eval()
+    # clip_model.load_state_dict(torch.load('weights/rd64-uni.pth', map_location=torch.device('cpu')), strict=False) # non-strict mode: decoder weights only (no CLIP weights)
+    # Initialize the processor and model
+    processor = AutoProcessor.from_pretrained("CIDAS/clipseg-rd64-refined")
+    clip_model = CLIPSegForImageSegmentation.from_pretrained("CIDAS/clipseg-rd64-refined")
+
+    # Ensure the model is in evaluation mode
     clip_model.eval()
-    clip_model.load_state_dict(torch.load('weights/rd64-uni.pth', map_location=torch.device('cpu')), strict=False) # non-strict mode: decoder weights only (no CLIP weights)
 
     # load stable diffusion model
-    clip_model_dir="stabilityai/stable-diffusion-2-inpainting"
-    scheduler = EulerDiscreteScheduler.from_pretrained(clip_model_dir, subfolder="scheduler") # The scheduler determine the algorithm used to produce new samples during the denoising process
+    model_dir="stabilityai/stable-diffusion-2-inpainting"
+    scheduler = EulerDiscreteScheduler.from_pretrained(model_dir, subfolder="scheduler") # The scheduler determine the algorithm used to produce new samples during the denoising process
     if use_gpu:
-        diffusion_pipe = StableDiffusionInpaintPipeline.from_pretrained(clip_model_dir,
+        diffusion_pipe = StableDiffusionInpaintPipeline.from_pretrained(model_dir,
                                                         scheduler=scheduler,
                                                         revision="fp16",
                                                         torch_dtype=torch.float16)
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('mps')
     else:
-        diffusion_pipe = StableDiffusionInpaintPipeline.from_pretrained(clip_model_dir,
+        diffusion_pipe = StableDiffusionInpaintPipeline.from_pretrained(model_dir,
                                                         scheduler=scheduler,
                                                         revision="fp16")
         device = torch.device('cpu')
     diffusion_pipe = diffusion_pipe.to(device)
     # diffusion_pipe.enable_xformers_memory_efficient_attention()
 
-    return clip_model, diffusion_pipe, device
+    return processor, clip_model, diffusion_pipe, device
 
 
 
 # System configuration
 def system_configuration():
-    if 'clip_model' not in st.session_state and 'diffusion_pipe' not in st.session_state and 'device' not in st.session_state:
-        st.session_state.clip_model, st.session_state.diffusion_pipe, st.session_state.device = load_models()
+    if 'processor' not in st.session_state and 'clip_model' not in st.session_state and 'diffusion_pipe' not in st.session_state and 'device' not in st.session_state:
+        st.session_state.processor, st.session_state.clip_model, st.session_state.diffusion_pipe, st.session_state.device = load_models()
     if 'uploaded_image_unprocessed' not in st.session_state:
         st.session_state.uploaded_image_unprocessed  = None
     if 'source_image' not in st.session_state:
@@ -114,7 +121,7 @@ def process_image(uploaded_image):
 
 
 # ClipSeg model
-def process_with_clipseg(clip_model, tensor_image, target_prompts):
+def process_with_clipseg(processor, clip_model, tensor_image, target_prompts):
 
     if use_gpu == False:
         tensor_image = tensor_image.float()
@@ -122,8 +129,14 @@ def process_with_clipseg(clip_model, tensor_image, target_prompts):
     # st.text(f"target_prompts: {target_prompts}")
 
     # Use ClipSeg to identify elements in picture
-    with torch.no_grad():
-        tensor_images_masks = clip_model(tensor_image.repeat(len(target_prompts),1,1,1), target_prompts)[0]
+    # with torch.no_grad():
+    #     tensor_images_masks = clip_model(tensor_image.repeat(len(target_prompts),1,1,1), target_prompts)[0]
+
+    inputs = processor(
+        text=target_prompts, images=tensor_image.repeat(len(target_prompts),1,1,1), return_tensors="pt", padding=True
+    )
+
+    tensor_images_masks = clip_model(**inputs)
 
     # st.text(f"tensor_images_masks shape: {tensor_images_masks.shape}")
 
@@ -223,7 +236,7 @@ def main():
                 with st.spinner('Magic happening ...'):   
                     # Run ClipSeg model
                     with st.spinner('Finding and Locating the target element(s) ...'):
-                        st.session_state.stable_diffusion_masks = process_with_clipseg(st.session_state.clip_model, st.session_state.tensor_image, st.session_state.target_prompts)
+                        st.session_state.stable_diffusion_masks = process_with_clipseg(st.session_state.processor, st.session_state.clip_model, st.session_state.tensor_image, st.session_state.target_prompts)
 
                     # Run Stable Diffusion model
                     with st.spinner('Generating new clothes ...'):
