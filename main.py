@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from torchvision import transforms
 from torchvision.transforms.functional import to_pil_image
 import numpy as np
+import os
 
 # Import Clip, ClipSeg, and Stable Diffusion models
 import clip
@@ -12,6 +13,11 @@ from clipseg.models.clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
 use_gpu = False
+
+# Check if the library is already cloned
+if not os.path.exists('clipseg'):
+    # Clone the library
+    os.system('git clone https://github.com/timojl/clipseg')
 
 
 
