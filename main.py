@@ -14,12 +14,6 @@ from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
 use_gpu = False
 
-# Check if the library is already cloned
-if not os.path.exists('clipseg'):
-    # Clone the library
-    os.system('git clone https://github.com/timojl/clipseg')
-
-
 
 # Load models
 @st.cache_resource
