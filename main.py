@@ -5,30 +5,22 @@ import matplotlib.pyplot as plt
 from torchvision import transforms
 from torchvision.transforms.functional import to_pil_image
 import numpy as np
-import os
 
 # Import Clip, ClipSeg, and Stable Diffusion models
 import clip
-from transformers import AutoProcessor, CLIPSegForImageSegmentation
-# from clipseg.models.souclipseg import CLIPDensePredT
+from clipseg.models.clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
-use_gpu = False
+use_gpu = True
 
 
 # Load models
 @st.cache_resource
 def load_models():
     # load clipseg model
-    # clip_model = CLIPDensePredT(version='ViT-B/16', reduce_dim=64)
-    # clip_model.eval()
-    # clip_model.load_state_dict(torch.load('weights/rd64-uni.pth', map_location=torch.device('cpu')), strict=False) # non-strict mode: decoder weights only (no CLIP weights)
-    # Initialize the processor and model
-    processor = AutoProcessor.from_pretrained("CIDAS/clipseg-rd64-refined")
-    clip_model = CLIPSegForImageSegmentation.from_pretrained("CIDAS/clipseg-rd64-refined")
-
-    # Ensure the model is in evaluation mode
+    clip_model = CLIPDensePredT(version='ViT-B/16', reduce_dim=64)
     clip_model.eval()
+    clip_model.load_state_dict(torch.load('weights/rd64-uni.pth', map_location=torch.device('cpu')), strict=False) # non-strict mode: decoder weights only (no CLIP weights)
 
     # load stable diffusion model
     model_dir="stabilityai/stable-diffusion-2-inpainting"
@@ -39,22 +31,24 @@ def load_models():
                                                         revision="fp16",
                                                         torch_dtype=torch.float16)
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('mps')
+        diffusion_pipe = diffusion_pipe.to(device)
+        if torch.cuda.is_available():
+            diffusion_pipe.enable_xformers_memory_efficient_attention()
     else:
         diffusion_pipe = StableDiffusionInpaintPipeline.from_pretrained(model_dir,
                                                         scheduler=scheduler,
                                                         revision="fp16")
         device = torch.device('cpu')
-    diffusion_pipe = diffusion_pipe.to(device)
-    # diffusion_pipe.enable_xformers_memory_efficient_attention()
+        diffusion_pipe = diffusion_pipe.to(device)
 
-    return processor, clip_model, diffusion_pipe, device
+    return clip_model, diffusion_pipe, device
 
 
 
 # System configuration
 def system_configuration():
-    if 'processor' not in st.session_state and 'clip_model' not in st.session_state and 'diffusion_pipe' not in st.session_state and 'device' not in st.session_state:
-        st.session_state.processor, st.session_state.clip_model, st.session_state.diffusion_pipe, st.session_state.device = load_models()
+    if 'clip_model' not in st.session_state and 'diffusion_pipe' not in st.session_state and 'device' not in st.session_state:
+        st.session_state.clip_model, st.session_state.diffusion_pipe, st.session_state.device = load_models()
     if 'uploaded_image_unprocessed' not in st.session_state:
         st.session_state.uploaded_image_unprocessed  = None
     if 'source_image' not in st.session_state:
@@ -121,22 +115,16 @@ def process_image(uploaded_image):
 
 
 # ClipSeg model
-def process_with_clipseg(processor, clip_model, tensor_image, target_prompts):
+def process_with_clipseg(clip_model, tensor_image, target_prompts):
 
     if use_gpu == False:
         tensor_image = tensor_image.float()
     # st.text(f"tensor_image shape: {tensor_image.shape}")
-    # st.text(f"target_prompts: {target_prompts}")
+    # st.text(f"Target prompts: {target_prompts}")
 
     # Use ClipSeg to identify elements in picture
-    # with torch.no_grad():
-    #     tensor_images_masks = clip_model(tensor_image.repeat(len(target_prompts),1,1,1), target_prompts)[0]
-
-    inputs = processor(
-        text=target_prompts, images=tensor_image.repeat(len(target_prompts),1,1,1), return_tensors="pt", padding=True
-    )
-
-    tensor_images_masks = clip_model(**inputs)
+    with torch.no_grad():
+        tensor_images_masks = clip_model(tensor_image.repeat(len(target_prompts),1,1,1), target_prompts)[0]
 
     # st.text(f"tensor_images_masks shape: {tensor_images_masks.shape}")
 
@@ -168,20 +156,6 @@ def process_with_stable_diffusion(diffusion_pipe, source_image, stable_diffusion
     return transformed_images
 
 
-# # Create image grid
-# def create_image_grid_streamlit(source_image, transformed_images, names, rows, columns):
-#     # Create a copy of the names and images to avoid modifying external variables
-#     names = copy.copy(names)
-#     images = copy.copy(transformed_images)
-    
-#     # Insert the original image and name at the beginning of the lists
-#     images.insert(0, source_image)
-#     names.insert(0, 'Original Image')
-
-#     for idx in range(len(images)):
-#         st.image(images[idx], caption=names[idx], use_column_width=True)
-
-
 
 def main():
 
@@ -209,14 +183,6 @@ def main():
             st.session_state.inpaint1 = st.text_input("Inpainting Prompt 1").strip().lower()
             st.session_state.target_element2 = st.text_input("Target Element 2").strip().lower()
             st.session_state.inpaint2 = st.text_input("Inpainting Prompt 2").strip().lower()
-
-            for target in [st.session_state.target_element1, st.session_state.target_element2]:
-                if target:
-                    st.session_state.target_prompts.append(target) 
-
-            for inpaint in [st.session_state.inpaint1, st.session_state.inpaint2]:
-                if inpaint:
-                    st.session_state.inpainting_prompts.append(inpaint)
     
 
     with col2:
@@ -226,25 +192,32 @@ def main():
             reset_session_state()
             # st.experimental_rerun()
 
-
         if st.button('Start Transformation'):
 
             if st.session_state.source_image is None:
                 st.error('Please upload an image.')
         
             if (st.session_state.target_element1 and st.session_state.inpaint1) or (st.session_state.target_element2 and st.session_state.inpaint2):
-                with st.spinner('Magic happening ...'):   
+                with st.spinner('Magic happening ...'): 
+
+                    for target in [st.session_state.target_element1, st.session_state.target_element2]:
+                        if target:
+                            st.session_state.target_prompts.append(target) 
+
+                    for inpaint in [st.session_state.inpaint1, st.session_state.inpaint2]:
+                        if inpaint:
+                            st.session_state.inpainting_prompts.append(inpaint)
+
+                    st.info(f"Target prompts: {st.session_state.target_prompts}")
+                    st.info(f"Inpainting prompts: {st.session_state.inpainting_prompts}")
+
                     # Run ClipSeg model
                     with st.spinner('Finding and Locating the target element(s) ...'):
-                        st.session_state.stable_diffusion_masks = process_with_clipseg(st.session_state.processor, st.session_state.clip_model, st.session_state.tensor_image, st.session_state.target_prompts)
+                        st.session_state.stable_diffusion_masks = process_with_clipseg(st.session_state.clip_model, st.session_state.tensor_image, st.session_state.target_prompts)
 
                     # Run Stable Diffusion model
-                    with st.spinner('Generating new clothes ...'):
+                    with st.spinner('Generating new element ...'):
                         st.session_state.transformed_images = process_with_stable_diffusion(st.session_state.diffusion_pipe, st.session_state.source_image, st.session_state.stable_diffusion_masks, st.session_state.target_prompts, st.session_state.inpainting_prompts)
-
-                    # # Create image grid
-                    # create_image_grid_streamlit(st.session_state.source_image, st.session_state.transformed_images, st.session_state.target_prompts, 1, 2)
-                    reset_session_state()
 
                     st.success('Transformation Complete !')
 
