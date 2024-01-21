@@ -5,15 +5,12 @@ import matplotlib.pyplot as plt
 from torchvision import transforms
 from torchvision.transforms.functional import to_pil_image
 import numpy as np
-import copy
-import os
 
 # Import Clip, ClipSeg, and Stable Diffusion models
-import clip
 from clipseg.models.clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
-use_gpu = True
+use_gpu = False
 
 
 
