@@ -1,0 +1,36 @@
+# Standard libraries for data handling and transformation
+numpy
+Pillow
+opencv-python
+scipy
+
+# Progress bars in the terminal
+tqdm
+
+# Regular expressions
+regex
+
+# PyTorch for deep learning models (CPU version)
+torch
+torchvision
+torchaudio
+
+# Hugging Face's transformers and diffusers for Stable Diffusion and other transformer models
+transformers
+diffusers
+
+# Xformers for efficient excution of the transformers architecture
+xformers
+
+# Other dependencies that might be required by the above packages or your code
+requests
+matplotlib
+
+# UI design and web deployment
+streamlit
+
+# Install Clip from OpenAI ## MIT Licence
+git+https://github.com/openai/CLIP.git
+
+
+
