@@ -32,6 +32,9 @@ streamlit
 # Install Clip from OpenAI ## MIT Licence
 git+https://github.com/openai/CLIP.git
 
+# packages streamlt wants to install
+accelerate
+
 
 
 
