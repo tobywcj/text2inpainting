@@ -8,7 +8,7 @@ import numpy as np
 
 # Import Clip, ClipSeg, and Stable Diffusion models
 import clip
-from clipseg.models.clipseg import CLIPDensePredT
+from clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
 use_gpu = True
