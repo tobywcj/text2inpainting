@@ -14,7 +14,7 @@ from clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
 
-use_gpu = True
+use_gpu = False
 
 
 # Load models
