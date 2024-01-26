@@ -1,5 +1,6 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 import streamlit as st
 import torch
 from PIL import Image
