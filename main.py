@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 import streamlit as st
 import torch
 from PIL import Image
@@ -8,10 +10,11 @@ import numpy as np
 
 # Import Clip, ClipSeg, and Stable Diffusion models
 import clip
-from clipseg import CLIPDensePredT
+from clipseg.models.clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
-use_gpu = False
+
+use_gpu = True
 
 
 # Load models
