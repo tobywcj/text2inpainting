@@ -33,6 +33,7 @@ This application uses the ClipSeg and Stable Diffusion models to identify and tr
 ## Installation
 
 1. Clone the repository.
+2. `` git clone https://github.com/timojl/clipseg.git ``
 2. Install the required packages using pip: `pip install -r requirements.txt`
 3. Run the application: `streamlit run main.py`
 
