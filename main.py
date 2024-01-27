@@ -209,7 +209,8 @@ def main():
                             st.session_state.inpainting_prompts.append(inpaint)
 
                     st.info(f"Inpainting {st.session_state.target_prompts[0]} to {st.session_state.inpainting_prompts[0]} ...")
-                    st.info(f"Inpainting {st.session_state.target_prompts[1]} to {st.session_state.inpainting_prompts[1]} ...")
+                    if st.session_state.target_prompts[1] and st.session_state.inpainting_prompts[1]:
+                        st.info(f"Inpainting {st.session_state.target_prompts[1]} to {st.session_state.inpainting_prompts[1]} ...")
 
                     # Run ClipSeg model
                     with st.spinner('Finding and Locating the target element(s) ...'):
