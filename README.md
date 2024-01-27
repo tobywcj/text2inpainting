@@ -4,6 +4,10 @@ This application uses the ClipSeg and Stable Diffusion models to identify and tr
 
 ---
 
+## Demo
+
+
+
 ## Features
 
 - Identify elements in images using ClipSeg
