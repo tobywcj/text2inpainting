@@ -1,4 +1,4 @@
-# ClipSeg Diffusion Image Synthesis App
+# Text-prompt Inpainting WebApp
 
 This application uses the ClipSeg and Stable Diffusion models to identify and transform elements in images.
 

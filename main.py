@@ -1,21 +1,17 @@
-import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=FutureWarning)
 import streamlit as st
 import torch
 from PIL import Image
-import matplotlib.pyplot as plt
 from torchvision import transforms
 from torchvision.transforms.functional import to_pil_image
 import numpy as np
 
 # Import Clip, ClipSeg, and Stable Diffusion models
 import clip
-from clipseg import CLIPDensePredT
+from clipseg.models.clipseg import CLIPDensePredT
 from diffusers import StableDiffusionInpaintPipeline, EulerDiscreteScheduler
 
-
 use_gpu = True
+
 
 
 # Load models
@@ -164,9 +160,9 @@ def process_with_stable_diffusion(diffusion_pipe, source_image, stable_diffusion
 def main():
 
     # set page configuration
-    st.set_page_config(page_title='Virtual Try On', page_icon='👗', layout='wide')
+    st.set_page_config(page_title='👗 Clothes Replacement', page_icon='👗', layout='wide')
 
-    st.title('Virtual Try On')
+    st.title('👗 Clothes Replacement')
 
     col1, col2 = st.columns(2)
 
@@ -212,8 +208,8 @@ def main():
                         if inpaint:
                             st.session_state.inpainting_prompts.append(inpaint)
 
-                    st.info(f"Target prompts: {st.session_state.target_prompts}")
-                    st.info(f"Inpainting prompts: {st.session_state.inpainting_prompts}")
+                    st.info(f"Inpainting {st.session_state.target_prompts[0]} to {st.session_state.inpainting_prompts[0]} ...")
+                    st.info(f"Inpainting {st.session_state.target_prompts[1]} to {st.session_state.inpainting_prompts[1]} ...")
 
                     # Run ClipSeg model
                     with st.spinner('Finding and Locating the target element(s) ...'):
