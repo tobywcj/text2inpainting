@@ -8,6 +8,10 @@ This application uses the ClipSeg and Stable Diffusion models to identify and tr
 
 
 
+https://github.com/tobywcj/text-prompt-inpainting/assets/71925079/ceb6b0bd-f96c-4c51-8c94-577327242dfc
+
+
+
 ## Features
 
 - Identify elements in images using ClipSeg
