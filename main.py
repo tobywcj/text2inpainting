@@ -209,7 +209,7 @@ def main():
                             st.session_state.inpainting_prompts.append(inpaint)
 
                     st.info(f"Inpainting {st.session_state.target_prompts[0]} to {st.session_state.inpainting_prompts[0]} ...")
-                    if st.session_state.target_prompts[1] and st.session_state.inpainting_prompts[1]:
+                    if len(st.session_state.target_prompts) == 2 and len(st.session_state.inpainting_prompts) == 2:
                         st.info(f"Inpainting {st.session_state.target_prompts[1]} to {st.session_state.inpainting_prompts[1]} ...")
 
                     # Run ClipSeg model
